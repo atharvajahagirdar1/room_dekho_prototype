@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login / Signup</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(90deg, #e2e2e2, #c9d6ff);
+    }
+
+    .container {
+      position: relative;
+      width: 850px;
+      height: 550px;
+      background: #fff;
+      border-radius: 30px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+
+    .form-box {
+      position: absolute;
+      right: 0;
+      width: 50%;
+      height: 100%;
+      border-radius: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+      text-align: center;
+      background-color: white;
+      transition: transform 0.6s ease-in-out;
+      pointer-events: all;
+      opacity: 1;
+      z-index: 2;
+    }
+
+    .form-box.register {
+      left: 0;
+      transform: translateX(100%);
+      pointer-events: none;
+      opacity: 0;
+      z-index: 1;
+    }
+
+    .container.active .form-box.login {
+      transform: translateX(-100%);
+      pointer-events: none;
+      opacity: 0;
+      z-index: 1;
+    }
+
+    .container.active .form-box.register {
+      transform: translateX(0);
+      pointer-events: all;
+      opacity: 1;
+      z-index: 2;
+    }
+
+    form {
+      width: 100%;
+    }
+
+    .container h1 {
+      font-size: 36px;
+      margin-bottom: 15px;
+    }
+
+    .input-box {
+      margin: 30px 0;
+    }
+
+    .input-box input {
+      width: 80%;
+      padding: 13px;
+      background: #eee;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .input-box input::placeholder {
+      color: #888;
+      font-weight: 400;
+    }
+
+    #forgot {
+      text-decoration: none;
+      color: black;
+      font-size: 14px;
+    }
+
+    button#login-btn,
+    button#register-btn {
+      width: 250px;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      background-color: rgb(46, 104, 220);
+      color: white;
+      font-weight: bold;
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .toggle-box {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      display: flex;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .toggle-panel {
+      position: relative;
+      width: 50%;
+      height: 100%;
+      background: rgb(73, 124, 227);
+      border-radius: 30px;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 25px;
+      pointer-events: all;
+      transition: all 0.6s ease-in-out;
+    }
+
+    .toggle-left {
+      left: 0;
+      padding-left: 50px;
+      text-align: left;
+    }
+
+    .toggle-right {
+      right: 0;
+      padding-right: 50px;
+      text-align: right;
+      transform: translateX(100%);
+      opacity: 0;
+    }
+
+    .container.active .toggle-left {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+
+    .container.active .toggle-right {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .toggle-panel button {
+      border: 2px solid white;
+      padding: 10px;
+      width: 120px;
+      background-color: transparent;
+      color: white;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+
+    .toggle-panel button:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container" id="container">
+    <!-- LOGIN FORM -->
+    <div class="form-box login">
+      <form id="login-form">
+        <h1>Login</h1>
+        <div class="input-box">
+          <input type="email" name="email" placeholder="Email" required />
+        </div>
+        <div class="input-box">
+          <input type="password" name="password" placeholder="Password" required />
+        </div>
+        <div class="forgot-link">
+          <a id="forgot" href="#">Forgot password?</a>
+        </div>
+        <button id="login-btn" type="submit">Login</button>
+      </form>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div class="form-box register">
+      <form id="register-form">
+        <h1>Sign Up</h1>
+        <div class="input-box">
+          <input type="text" name="username" placeholder="Username" required />
+        </div>
+        <div class="input-box">
+          <input type="email" name="email" placeholder="Email" required />
+        </div>
+        <div class="input-box">
+          <input type="password" name="password" placeholder="Password" required />
+        </div>
+        <button id="register-btn" type="submit">Register</button>
+      </form>
+    </div>
+
+    <!-- TOGGLE PANELS -->
+    <div class="toggle-box">
+      <div class="toggle-panel toggle-left">
+        <h1>Hello, Welcome!</h1>
+        <p>Don't have an account?</p>
+        <button id="register">Register</button>
+      </div>
+      <div class="toggle-panel toggle-right">
+        <h1>Welcome back!</h1>
+        <p>Already have an account?</p>
+        <button id="login">Login</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCyQlPonxZFcMJ2DG7Gh3TpizWbpKhN9nI",
+      authDomain: "room-dekho-ecf17.firebaseapp.com",
+      projectId: "room-dekho-ecf17",
+      storageBucket: "room-dekho-ecf17.appspot.com",
+      messagingSenderId: "171669282445",
+      appId: "1:171669282445:web:4ae6f044a49bdbe3ba4cc4",
+      measurementId: "G-E6RYJP6EKQ"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Toggle form UI
+    const container = document.getElementById('container');
+    const registerToggleBtn = document.getElementById('register');
+    const loginToggleBtn = document.getElementById('login');
+
+    registerToggleBtn.addEventListener('click', () => {
+      container.classList.add('active');
+    });
+
+    loginToggleBtn.addEventListener('click', () => {
+      container.classList.remove('active');
+    });
+
+    // Register form submission
+    const registerForm = document.getElementById('register-form');
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = registerForm.email.value.trim();
+      const password = registerForm.password.value.trim();
+      const username = registerForm.username.value.trim();
+
+      if (!email || !password || !username) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Save user data in Firestore
+        await setDoc(doc(db, "users", user.uid), {
+          email: user.email,
+          username: username,
+          onboardingComplete: false,
+          userType: null,
+          extraData: {}
+        });
+
+        alert("Registration successful! Redirecting to onboarding...");
+        registerForm.reset();
+        window.location.href = "onboarding.html";
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    // Login form submission
+    const loginForm = document.getElementById('login-form');
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = loginForm.email.value.trim();
+      const password = loginForm.password.value.trim();
+
+      if (!email || !password) {
+        alert("Please fill in both email and password.");
+        return;
+      }
+
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+
+          if (!userData.onboardingComplete) {
+            window.location.href = "onboarding.html";
+          } else if (userData.userType === "owner") {
+            window.location.href = "owner-dashboard.html";
+          } else if (userData.userType === "renter") {
+            window.location.href = "renter-dashboard.html";
+          } else {
+            alert("User type unknown. Please complete onboarding.");
+            window.location.href = "onboarding.html";
+          }
+        } else {
+          // If user data missing, redirect to onboarding
+          window.location.href = "onboarding.html";
+        }
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    // Redirect logged-in users automatically
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const userDocRef = doc(db, "users", user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+
+            if (!userData.onboardingComplete) {
+              window.location.href = "onboarding.html";
+            } else if (userData.userType === "owner") {
+              window.location.href = "owner-dashboard.html";
+            } else if (userData.userType === "renter") {
+              window.location.href = "renter-dashboard.html";
+            }
+          } else {
+            window.location.href = "onboarding.html";
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner new</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+
+         body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fb;
+      margin: 0;
+      padding: 0;
+    }
+ /* navbar   */
+.navbar {
+    background-color: white;
+    color: #007BFF;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 255, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #007BFF;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.nav-links li {
+    padding: 0;
+    margin: 0;
+}
+
+
+.nav-links li a {
+    text-decoration: none;
+    color: #007BFF;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-links li a:hover {
+   .nav-links li {
+    padding: 0;
+    margin: 0;
+}
+ color: #0056b3;
+}
+
+.menu-icon {
+    display: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: #007BFF;
+}
+    .container {
+      display: flex;
+      padding: 20px;
+      gap: 20px;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .profile-pic {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 15px;
+    }
+    .owner-name {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .verified {
+      color: green;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+    .edit-profile {
+      font-size: 14px;
+      color: #007bff;
+      cursor: pointer;
+      margin-bottom: 20px;
+      display: inline-block;
+    }
+    .verification-status h4 {
+      margin-bottom: 10px;
+    }
+    .verification-status p {
+      font-size: 14px;
+      margin: 5px 0;
+    }
+    .verification-status i {
+      margin-right: 5px;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      text-align: center;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 15px 0;
+    }
+    .logout {
+      background: #ff4d4d;
+    }
+
+    /* Main Content */
+    /* dashbored */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .card h3 {
+      margin-bottom: 15px;
+    }
+    .stats {
+      display: flex;
+      gap: 20px;
+    }
+    .stat-box {
+      flex: 1;
+      text-align: center;
+      padding: 15px;
+      border-radius: 8px;
+      background: #f9fafc;
+    }
+    .stat-box i {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    .stat-box p {
+      margin: 5px 0;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .preferences {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 15px;
+    }
+    .pref-box {
+      background: #f9fafc;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+      .stat-box i {
+    font-size: 28px;
+    margin-bottom: 8px;
+    transition: transform 0.2s ease;
+      }
+    .stat-box i:hover {
+      transform: scale(1.2);
+    }
+
+    
+    /* about----------------------------- */
+    .edit-icon {
+  font-size: 16px;
+  color: #007bff;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+#aboutInput {
+  width: 100%;
+  height: 120px;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  resize: none;
+}
+#saveBtn {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+#saveBtn:hover {
+  background: #0056b3;
+}
+
+/* profile photo and name -------------- */
+.small-btn {
+  background: #6c757d;
+  font-size: 13px;
+  padding: 6px;
+  margin-top: 8px;
+}
+.small-btn:hover {
+  background: #5a6268;
+}
+
+    </style>
+</head>
+<body>
+ 
+    <!-- //navbar  -->
+     <nav class="navbar">
+        <div class="logo">RoomDekho</div>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#">Home</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Services</a></li>
+            <!-- <li><button class="blue-button">Logout</button></li> -->
+            <!-- <li><button class="blue-button">Edit</button></li> -->
+           <div class="hamburger" onclick="toggleDropdown()"> 
+              <div></div>
+              <div></div>
+              <div></div>
+           </div>
+        </ul>
+        <div class="menu-icon" id="menuIcon">&#9776;</div>
+    </nav>
+  
+
+    <div class="container">
+   <!--Sidebar      -->
+<div class="sidebar">
+  <!-- Profile Picture -->
+  <img src="profile.png" alt="Owner" class="profile-pic" id="profilePic">
+  <input type="file" id="uploadPic" accept="image/*" style="display:none;" onchange="changeProfilePic(event)">
+  <button class="btn small-btn" onclick="document.getElementById('uploadPic').click()">Change Photo</button>
+
+  <!-- Owner Name -->
+  <div class="owner-name" id="ownerName">Aakash Prajapati</div>
+  <input type="text" id="editName" style="display:none; margin-top:10px; width:100%; padding:6px; border:1px solid #ccc; border-radius:6px;" maxlength="50">
+  <button class="btn small-btn" onclick="enableNameEdit()">Change Name</button>
+
+  <div class="verified"><i class="fa-solid fa-circle-check"></i> Verified Owner</div>
+
+  <div class="verification-status">
+    <h4>Verification Status</h4>
+    <p><i class="fa-solid fa-phone text-success"></i> Phone Verified</p>
+    <p><i class="fa-solid fa-envelope text-success"></i> Email Verified</p>
+    <p><i class="fa-solid fa-id-card"></i> ID Proof Pending</p>
+  </div>
+
+  <button class="btn">View Properties</button>
+  <button class="btn logout">Logout</button>
+     
+    </div> 
+
+
+    <!-- Main Content -->
+    <div class="main">
+     
+      <!-- My Activity -->
+      <div class="card">
+        <h3>My Dashboard</h3>
+        <div class="stats">
+          <div class="stat-box">
+            <i class="fa-solid fa-home" style="color:#007bff;"></i>
+            <p>8</p>
+            <small>Listed Properties</small>
+          </div>
+          <div class="stat-box">
+            <i class="fa-solid fa-eye" style="color:#28a745;"></i>
+            <p>350+</p>
+            <small>Total Views</small>
+          </div>
+          <div class="stat-box">
+            <i class="fa-solid fa-envelope" style="color:#ffc107;"></i>
+            <p>45</p>
+            <small>Inquiries</small>
+          </div>
+        </div>
+      </div>
+
+      
+<!-- About section    -->
+<div class="card" id="aboutCard">
+  <h3>
+    About Me 
+    <i class="fa-solid fa-pen edit-icon" onclick="enableEdit()"></i>
+  </h3>
+  <p id="aboutText">
+    Hello! I am Aakash Prajapati, a property owner in Mumbai with multiple rental listings. 
+    I focus on providing clean, safe, and affordable rental options for families and working professionals.
+  </p>
+  
+  <!-- Editable textarea (hidden by default) -->
+  <textarea id="aboutInput" maxlength="1000" style="display:none;"></textarea>
+  <p id="charCount" style="display:none; font-size: 12px; color: gray;">
+    Character limit: 0 / 1000
+  </p>
+  <button id="saveBtn" style="display:none;" onclick="saveAbout()">Save</button>
+</div>
+
+      <!-- My Preferences -->
+      <div class="card">
+        <h3>Property Management</h3>
+        <div class="preferences">
+          <div class="pref-box"><b>Total Listings:</b> 8</div>
+          <div class="pref-box"><b>Active Properties:</b> 5</div>
+          <div class="pref-box"><b>Occupied:</b> 3</div>
+          <div class="pref-box"><b>City:</b> Mumbai</div>
+          <div class="pref-box"><b>Specialization:</b> 1BHK & 2BHK Flats</div>
+          <div class="pref-box"><b>Boosted Ads:</b> 2 Active</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    // about section ---------------
+function enableEdit() {
+  let aboutText = document.getElementById("aboutText");
+  let aboutInput = document.getElementById("aboutInput");
+  let saveBtn = document.getElementById("saveBtn");
+  let charCount = document.getElementById("charCount");
+
+  aboutInput.style.display = "block";
+  saveBtn.style.display = "inline-block";
+  charCount.style.display = "block";
+
+  aboutInput.value = aboutText.innerText.trim();
+  charCount.innerText = "Character limit: " + aboutInput.value.length + " / 1000";
+
+  aboutText.style.display = "none";
+
+  // live character counter
+  aboutInput.addEventListener("input", function () {
+    charCount.innerText = "Character limit: " + aboutInput.value.length + " / 1000";
+  });
+}
+
+function saveAbout() {
+  let aboutText = document.getElementById("aboutText");
+  let aboutInput = document.getElementById("aboutInput");
+  let saveBtn = document.getElementById("saveBtn");
+  let charCount = document.getElementById("charCount");
+
+  aboutText.innerText = aboutInput.value;
+
+  aboutText.style.display = "block";
+  aboutInput.style.display = "none";
+  saveBtn.style.display = "none";
+  charCount.style.display = "none";
+}
+
+// profile photo and cover photo section --------------
+// Change profile picture preview
+function changeProfilePic(event) {
+  const reader = new FileReader();
+  reader.onload = function(){
+    const output = document.getElementById('profilePic');
+    output.src = reader.result;
+  };
+  reader.readAsDataURL(event.target.files[0]);
+}
+
+// Change owner name
+function enableNameEdit() {
+  let nameDisplay = document.getElementById("ownerName");
+  let nameInput = document.getElementById("editName");
+
+  if (nameInput.style.display === "none") {
+    nameInput.value = nameDisplay.innerText.trim();
+    nameDisplay.style.display = "none";
+    nameInput.style.display = "block";
+
+    // Save on Enter key
+    nameInput.addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        saveName();
+      }
+    });
+  } else {
+    saveName();
+  }
+}
+
+function saveName() {
+  let nameDisplay = document.getElementById("ownerName");
+  let nameInput = document.getElementById("editName");
+
+  if (nameInput.value.trim() !== "") {
+    nameDisplay.innerText = nameInput.value.trim();
+  }
+
+  nameInput.style.display = "none";
+  nameDisplay.style.display = "block";
+}
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renter Dashboard - RoomDekho</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+        }
+        .property-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .property-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .filter-btn.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-8">
+                    <a href="#" class="text-3xl font-bold text-indigo-600">RoomDekho</a>
+                    <div class="hidden md:flex items-center space-x-6">
+                        <a href="#" class="text-gray-600 hover:text-indigo-600 font-medium">Browse Rooms</a>
+                        <a href="#" class="text-gray-600 hover:text-indigo-600 font-medium">PG/Hostels</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                     <div class="relative">
+                        <div id="userMenuBtn" class="flex items-center space-x-2 cursor-pointer">
+                            <img id="userAvatar" class="h-9 w-9 rounded-full object-cover" src="https://placehold.co/100x100/E2E8F0/4A5568?text=U" alt="User avatar">
+                            <span id="userName" class="hidden md:block text-gray-700 font-medium">User</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                        </div>
+                         <div id="userMenu" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden" role="menu">
+                             <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Your Profile</a>
+                             <a href="my-bookings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">My Bookings</a>
+                             <button id="logoutBtn" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Logout</button>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
+        <div class="px-4 sm:px-0">
+            <h2 class="text-3xl font-bold text-gray-900">Find Your Perfect Room</h2>
+            <p class="mt-1 text-gray-600">Discover Comfortable and Affordable Rooms</p>
+
+            <div class="mt-6 flex flex-col md:flex-row gap-2">
+                <div class="relative flex-grow">
+                    <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
+                    <input id="searchInput" type="text" placeholder="Search by city, locality, or landmark..." class="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+            </div>
+            
+            <div id="filters" class="mt-4 flex items-center gap-2 overflow-x-auto pb-2">
+                <button class="filter-btn whitespace-nowrap px-4 py-2 border rounded-full text-sm font-medium" data-filter="1BHK">1BHK</button>
+                <button class="filter-btn whitespace-nowrap px-4 py-2 border rounded-full text-sm font-medium" data-filter="2BHK">2BHK</button>
+                <button class="filter-btn whitespace-nowrap px-4 py-2 border rounded-full text-sm font-medium" data-filter="PG">PG</button>
+                <button class="filter-btn whitespace-nowrap px-4 py-2 border rounded-full text-sm font-medium" data-filter="Hostel">Hostel</button>
+                <button class="filter-btn whitespace-nowrap px-4 py-2 border rounded-full text-sm font-medium" data-filter="Furnished">Furnished</button>
+            </div>
+        </div>
+
+        <div class="mt-8 px-4 sm:px-0">
+             <div class="flex justify-between items-center mb-4">
+                 <h3 class="text-xl font-bold text-gray-900">Available Rooms <span id="roomCount" class="text-gray-500 font-medium">(...)</span></h3>
+                  <button id="savedToggleBtn" class="flex items-center text-gray-700 font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>
+                        Saved (<span id="savedCount">0</span>)
+                    </button>
+             </div>
+
+            <div id="listingsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamic Content Here -->
+            </div>
+
+            <div id="loadMoreContainer" class="mt-8 text-center">
+                 <button id="loadMoreBtn" class="bg-white text-gray-800 font-semibold px-6 py-3 rounded-lg border border-gray-300 hover:bg-gray-100">Load More Rooms</button>
+             </div>
+        </div>
+    </main>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, query, updateDoc, arrayUnion, arrayRemove, limit, startAfter } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyQlPonxZFcMJ2DG7Gh3TpizWbpKhN9nI",
+            authDomain: "room-dekho-ecf17.firebaseapp.com",
+            projectId: "room-dekho-ecf17",
+            storageBucket: "room-dekho-ecf17.appspot.com",
+            messagingSenderId: "171669282445",
+            appId: "1:171669282445:web:4ae6f044a49bdbe3ba4cc4",
+        };
+        
+        const ROOMS_PER_PAGE = 6;
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const ui = {
+            userName: document.getElementById('userName'),
+            userAvatar: document.getElementById('userAvatar'),
+            logoutBtn: document.getElementById('logoutBtn'),
+            userMenuBtn: document.getElementById('userMenuBtn'),
+            userMenu: document.getElementById('userMenu'),
+            listingsGrid: document.getElementById('listingsGrid'),
+            roomCount: document.getElementById('roomCount'),
+            searchInput: document.getElementById('searchInput'),
+            filters: document.getElementById('filters'),
+            savedToggleBtn: document.getElementById('savedToggleBtn'),
+            savedCount: document.getElementById('savedCount'),
+            loadMoreBtn: document.getElementById('loadMoreBtn'),
+            loadMoreContainer: document.getElementById('loadMoreContainer'),
+        };
+
+        const state = {
+            currentUser: null,
+            allRooms: [],
+            savedRoomIds: [],
+            showingSaved: false,
+            lastVisible: null,
+        };
+
+        async function onAuthChange(user) {
+            if (user) {
+                state.currentUser = user;
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    if (userData.userType === 'renter') {
+                        renderUserInfo(userData);
+                        state.savedRoomIds = userData.savedRooms || [];
+                        updateSavedCount();
+                        await fetchRooms(true);
+                    } else { window.location.href = 'owner-dashboard.html'; }
+                } else { window.location.href = 'onboarding.html'; }
+            } else { window.location.href = 'login.html'; }
+        }
+
+        function renderUserInfo(userData) {
+            ui.userName.textContent = userData.username || state.currentUser.email;
+            if (userData.username) {
+                ui.userAvatar.src = `https://placehold.co/100x100/E2E8F0/4A5568?text=${userData.username.charAt(0).toUpperCase()}`;
+            }
+        }
+
+        async function fetchRooms(initial = false) {
+            if (initial) {
+                state.allRooms = [];
+                state.lastVisible = null;
+                ui.listingsGrid.innerHTML = '';
+            }
+            ui.loadMoreBtn.disabled = true;
+            try {
+                let q = query(collection(db, "rooms"), limit(ROOMS_PER_PAGE));
+                if (state.lastVisible && !initial) {
+                    q = query(q, startAfter(state.lastVisible));
+                }
+                const snapshot = await getDocs(q);
+                if (!snapshot.empty) {
+                    state.lastVisible = snapshot.docs[snapshot.docs.length - 1];
+                    const newRooms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    state.allRooms.push(...newRooms);
+                    ui.loadMoreContainer.style.display = 'block';
+                } else {
+                    ui.loadMoreContainer.style.display = 'none';
+                    if (initial) ui.listingsGrid.innerHTML = `<p class="col-span-full text-center text-gray-500">No properties found.</p>`;
+                }
+                applyFilters();
+            } catch (error) {
+                console.error("Error fetching rooms:", error);
+            } finally {
+                ui.loadMoreBtn.disabled = false;
+            }
+        }
+        
+        function renderRooms(rooms) {
+            ui.listingsGrid.innerHTML = '';
+            ui.roomCount.textContent = `(${rooms.length} found)`;
+            if (rooms.length === 0) {
+                ui.listingsGrid.innerHTML = `<p class="col-span-full text-center text-gray-500">No properties match criteria.</p>`;
+                return;
+            }
+            rooms.forEach(room => {
+                const cardHTML = createRoomCardHTML(room);
+                ui.listingsGrid.insertAdjacentHTML('beforeend', cardHTML);
+            });
+        }
+
+        function createRoomCardHTML(room) {
+            const isSaved = state.savedRoomIds.includes(room.id);
+            return `
+                <div class="property-card bg-white rounded-lg shadow-md overflow-hidden">
+                    <a href="room-details.html?id=${room.id}" class="block">
+                        <div class="relative">
+                            <img src="${room.imageUrl || 'https://placehold.co/600x400/E2E8F0/4A5568?text=Room'}" alt="${room.title}" class="w-full h-56 object-cover">
+                        </div>
+                    </a>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <a href="room-details.html?id=${room.id}" class="block">
+                                <h3 class="text-lg font-bold text-gray-900">${room.title || 'Spacious Room'}</h3>
+                                <p class="text-sm text-gray-600">${room.location || 'Prime Location'}</p>
+                            </a>
+                            <button class="save-btn p-1 rounded-full hover:bg-gray-100" data-id="${room.id}">
+                                <svg class="h-6 w-6 ${isSaved ? 'text-red-500' : 'text-gray-400'}" fill="${isSaved ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                            </button>
+                        </div>
+                        <p class="mt-2 text-2xl font-bold text-gray-900">₹${(room.price || 0).toLocaleString()} <span class="text-sm font-normal text-gray-500">/month</span></p>
+                        <div class="mt-4 flex justify-between items-center">
+                             <div class="flex items-center">
+                                <img src="${room.ownerAvatar || 'https://placehold.co/100x100/E2E8F0/4A5568?text=O'}" class="h-8 w-8 rounded-full" />
+                                <span class="ml-2 text-gray-700 font-medium">${room.ownerName || 'Owner'}</span>
+                            </div>
+                            <a href="mailto:${room.ownerEmail || ''}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-indigo-700">Contact Owner</a>
+                        </div>
+                    </div>
+                </div>`;
+        }
+        
+        function applyFilters() {
+            let roomsToDisplay = state.allRooms;
+            const searchTerm = ui.searchInput.value.toLowerCase();
+            const activeFilters = [...ui.filters.querySelectorAll('.filter-btn.active')].map(btn => btn.dataset.filter);
+            
+            if (state.showingSaved) {
+                roomsToDisplay = roomsToDisplay.filter(room => state.savedRoomIds.includes(room.id));
+            }
+            if (searchTerm) {
+                roomsToDisplay = roomsToDisplay.filter(room => (room.title && room.title.toLowerCase().includes(searchTerm)) || (room.location && room.location.toLowerCase().includes(searchTerm)));
+            }
+            if (activeFilters.length > 0) {
+                 roomsToDisplay = roomsToDisplay.filter(room => activeFilters.every(filter => (room.tags || []).includes(filter)));
+            }
+            
+            renderRooms(roomsToDisplay);
+            ui.loadMoreContainer.style.display = (searchTerm || activeFilters.length > 0 || state.showingSaved) ? 'none' : 'block';
+        }
+
+        async function toggleSaveProperty(roomId) {
+            const userDocRef = doc(db, "users", state.currentUser.uid);
+            const isSaved = state.savedRoomIds.includes(roomId);
+            try {
+                if (isSaved) {
+                    await updateDoc(userDocRef, { savedRooms: arrayRemove(roomId) });
+                    state.savedRoomIds = state.savedRoomIds.filter(id => id !== roomId);
+                } else {
+                    await updateDoc(userDocRef, { savedRooms: arrayUnion(roomId) });
+                    state.savedRoomIds.push(roomId);
+                }
+                updateSavedCount();
+                applyFilters();
+            } catch (error) {
+                console.error("Error updating saved rooms:", error);
+            }
+        }
+
+        function updateSavedCount() {
+            ui.savedCount.textContent = state.savedRoomIds.length;
+        }
+        
+        ui.logoutBtn.addEventListener('click', () => signOut(auth));
+        ui.userMenuBtn.addEventListener('click', () => ui.userMenu.classList.toggle('hidden'));
+        document.addEventListener('click', (e) => {
+            if (ui.userMenu && !ui.userMenu.contains(e.target) && !ui.userMenuBtn.contains(e.target)) {
+                ui.userMenu.classList.add('hidden');
+            }
+        });
+        ui.searchInput.addEventListener('input', applyFilters);
+        ui.filters.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-btn')) {
+                e.target.classList.toggle('active');
+                applyFilters();
+            }
+        });
+        ui.listingsGrid.addEventListener('click', (e) => {
+            const saveBtn = e.target.closest('.save-btn');
+            if (saveBtn) {
+                e.preventDefault();
+                toggleSaveProperty(saveBtn.dataset.id);
+            }
+        });
+        ui.savedToggleBtn.addEventListener('click', () => {
+            state.showingSaved = !state.showingSaved;
+            ui.savedToggleBtn.classList.toggle('text-indigo-600', state.showingSaved);
+            applyFilters();
+        });
+        ui.loadMoreBtn.addEventListener('click', () => fetchRooms(false));
+
+        onAuthStateChanged(auth, onAuthChange);
+    </script>
+</body>
+</html>
+

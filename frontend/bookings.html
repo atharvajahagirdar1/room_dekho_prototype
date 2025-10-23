@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Bookings - RoomDekho</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .text-primary { color: #007bff; }
+        .bg-primary { background-color: #007bff; }
+        .border-primary { border-color: #007bff; }
+        .hover\:bg-primary-dark:hover { background-color: #0056b3; }
+        .modal-backdrop { background-color: rgba(0, 0, 0, 0.6); }
+        .star-rating i { color: #d1d5db; cursor: pointer; transition: color 0.2s; }
+        .star-rating i.active { color: #f59e0b; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center space-x-8">
+                    <a href="owner-dashboard.html" class="text-2xl font-bold text-primary">RoomDekho</a>
+                    <nav class="hidden md:flex items-center space-x-6 text-gray-600 font-medium">
+                        <a href="owner-dashboard.html" class="hover:text-primary transition-colors">My Listings</a>
+                        <a href="owner-dashboard.html#available-renters-section" class="hover:text-primary transition-colors">Find Renters</a>
+                        <a href="#" class="text-primary border-b-2 border-primary pb-1">Bookings</a>
+                    </nav>
+                </div>
+                <div class="flex items-center space-x-4">
+                     <div class="relative">
+                        <div id="user-menu-button" class="flex items-center space-x-2 cursor-pointer">
+                            <img id="user-avatar" class="h-10 w-10 rounded-full object-cover" src="https://placehold.co/40x40/E2E8F0/4A5568?text=U" alt="User Avatar">
+                            <span id="user-name-display" class="hidden md:block font-semibold text-gray-700">Owner</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-gray-500"><path d="m6 9 6 6 6-6"/></svg>
+                        </div>
+                         <div id="user-menu" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden" role="menu">
+                             <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Profile</a>
+                             <button id="logout-btn" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Logout</button>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 lg:px-8 py-8">
+        
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Manage Booking Requests</h1>
+        </div>
+        
+        <section>
+            <div id="bookings-list" class="space-y-4">
+                <p id="loading-text" class="text-center text-gray-500 py-10">Loading booking requests...</p>
+            </div>
+        </section>
+
+    </main>
+    
+    <!-- Review Modal -->
+    <div id="reviewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="bg-white w-full max-w-lg rounded-lg shadow-xl">
+            <div class="p-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Review Renter</h3>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                    <div id="starRating" class="star-rating flex space-x-1 text-3xl">
+                        <i class="fas fa-star" data-value="1"></i><i class="fas fa-star" data-value="2"></i><i class="fas fa-star" data-value="3"></i><i class="fas fa-star" data-value="4"></i><i class="fas fa-star" data-value="5"></i>
+                    </div>
+                </div>
+                <div>
+                    <label for="reviewComment" class="block text-sm font-medium text-gray-700">Comment</label>
+                    <textarea id="reviewComment" rows="4" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="Share your experience with this renter..."></textarea>
+                </div>
+                <div class="mt-6 flex justify-end gap-4">
+                    <button id="cancelReviewBtn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md font-semibold hover:bg-gray-300">Cancel</button>
+                    <button id="submitReviewBtn" class="px-4 py-2 bg-primary text-white rounded-md font-semibold hover:bg-primary-dark">Submit Review</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, query, where, updateDoc, runTransaction, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyQlPonxZFcMJ2DG7Gh3TpizWbpKhN9nI",
+            authDomain: "room-dekho-ecf17.firebaseapp.com",
+            projectId: "room-dekho-ecf17",
+            storageBucket: "room-dekho-ecf17.appspot.com",
+            messagingSenderId: "171669282445",
+            appId: "1:171669282445:web:4ae6f044a49bdbe3ba4cc4",
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const App = {
+            currentUser: null,
+            reviewedBookingIds: [],
+            bookingToReview: null,
+            currentRating: 0,
+            
+            DOMElements: {
+                userNameDisplay: document.getElementById('user-name-display'),
+                userAvatar: document.getElementById('user-avatar'),
+                logoutBtn: document.getElementById('logout-btn'),
+                userMenuButton: document.getElementById('user-menu-button'),
+                userMenu: document.getElementById('user-menu'),
+                bookingsList: document.getElementById('bookings-list'),
+                loadingText: document.getElementById('loading-text'),
+                reviewModal: document.getElementById('reviewModal'),
+                starRating: document.getElementById('starRating'),
+                reviewComment: document.getElementById('reviewComment'),
+                cancelReviewBtn: document.getElementById('cancelReviewBtn'),
+                submitReviewBtn: document.getElementById('submitReviewBtn'),
+            },
+
+            init() {
+                this.setupEventListeners();
+                onAuthStateChanged(auth, this.handleAuthStateChange.bind(this));
+            },
+
+            async handleAuthStateChange(user) {
+                if (user) {
+                    this.currentUser = user;
+                    const userDocSnap = await getDoc(doc(db, "users", user.uid));
+                    if (userDocSnap.exists() && userDocSnap.data().userType === 'owner') {
+                        this.updateUserInfo(userDocSnap.data());
+                        await this.fetchReviewedBookings();
+                        await this.fetchAndRenderBookings();
+                    } else { window.location.href = 'renter-dashboard.html'; }
+                } else { window.location.href = 'login.html'; }
+            },
+
+            updateUserInfo(userData) {
+                this.DOMElements.userNameDisplay.textContent = userData.username || this.currentUser.email;
+                if (userData.username) {
+                    this.DOMElements.userAvatar.src = `https://placehold.co/40x40/E2E8F0/4A5568?text=${userData.username.charAt(0).toUpperCase()}`;
+                }
+            },
+
+            setupEventListeners() {
+                this.DOMElements.logoutBtn.addEventListener('click', () => signOut(auth));
+                this.DOMElements.userMenuButton.addEventListener('click', () => this.DOMElements.userMenu.classList.toggle('hidden'));
+                this.DOMElements.bookingsList.addEventListener('click', this.handleBookingAction.bind(this));
+                this.DOMElements.cancelReviewBtn.addEventListener('click', this.closeReviewModal.bind(this));
+                this.DOMElements.submitReviewBtn.addEventListener('click', this.submitReview.bind(this));
+                this.DOMElements.starRating.addEventListener('click', this.handleStarClick.bind(this));
+            },
+
+            async fetchReviewedBookings() {
+                const q = query(collection(db, "reviews"), where("ownerId", "==", this.currentUser.uid));
+                const snapshot = await getDocs(q);
+                this.reviewedBookingIds = snapshot.docs.map(doc => doc.data().bookingId);
+            },
+
+            async fetchAndRenderBookings() {
+                this.DOMElements.loadingText.style.display = 'block';
+                this.DOMElements.bookingsList.innerHTML = '';
+                
+                try {
+                    const q = query(collection(db, "bookings"), where("ownerId", "==", this.currentUser.uid));
+                    const snapshot = await getDocs(q);
+                    const bookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                    this.DOMElements.loadingText.style.display = 'none';
+                    if (bookings.length === 0) {
+                        this.DOMElements.bookingsList.innerHTML = `<p class="text-center text-gray-500">No booking requests found.</p>`;
+                        return;
+                    }
+
+                    bookings.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+                    bookings.forEach(booking => this.DOMElements.bookingsList.innerHTML += this.createBookingCard(booking));
+                
+                } catch (error) {
+                    console.error("Error fetching bookings: ", error);
+                    this.DOMElements.loadingText.textContent = 'Failed to load requests.';
+                }
+            },
+
+            createBookingCard(booking) {
+                const statusStyles = {
+                    pending: 'bg-yellow-100 text-yellow-800',
+                    accepted: 'bg-green-100 text-green-800',
+                    declined: 'bg-red-100 text-red-800',
+                };
+
+                let actionButtonHTML = '';
+                if (booking.status === 'pending') {
+                    actionButtonHTML = `
+                        <div class="flex space-x-2">
+                            <button class="accept-btn bg-green-500 text-white px-4 py-2 text-sm rounded-md hover:bg-green-600" data-id="${booking.id}" data-room-id="${booking.roomId}">Accept</button>
+                            <button class="decline-btn bg-red-500 text-white px-4 py-2 text-sm rounded-md hover:bg-red-600" data-id="${booking.id}">Decline</button>
+                        </div>`;
+                } else if (booking.status === 'accepted' && !this.reviewedBookingIds.includes(booking.id)) {
+                    actionButtonHTML = `<button class="review-btn bg-blue-500 text-white px-4 py-2 text-sm rounded-md hover:bg-blue-600" data-booking='${JSON.stringify(booking)}'>Review Renter</button>`;
+                } else if (this.reviewedBookingIds.includes(booking.id)) {
+                    actionButtonHTML = `<p class="text-sm text-gray-500">Review Submitted</p>`;
+                }
+
+                return `
+                    <div class="bg-white p-4 rounded-lg shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div>
+                            <p class="font-bold text-lg">${booking.roomTitle || 'A Property'}</p>
+                            <p class="text-sm text-gray-600">Request from: <span class="font-medium">${booking.renterName || 'A Renter'}</span></p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                           <span class="text-sm font-semibold capitalize px-3 py-1 rounded-full ${statusStyles[booking.status] || ''}">${booking.status}</span>
+                           ${actionButtonHTML}
+                        </div>
+                    </div>`;
+            },
+
+            async handleBookingAction(e) {
+                const target = e.target;
+                const bookingId = target.dataset.id;
+
+                if (target.classList.contains('review-btn')) {
+                    this.bookingToReview = JSON.parse(target.dataset.booking);
+                    this.openReviewModal();
+                    return;
+                }
+
+                if (!bookingId) return;
+
+                target.disabled = true;
+                target.textContent = 'Updating...';
+
+                try {
+                    if (target.classList.contains('accept-btn')) {
+                        const roomId = target.dataset.roomId;
+                        await runTransaction(db, async (transaction) => {
+                            transaction.update(doc(db, "bookings", bookingId), { status: "accepted" });
+                            transaction.update(doc(db, "rooms", roomId), { status: "Booked" });
+                        });
+                    } else if (target.classList.contains('decline-btn')) {
+                        await updateDoc(doc(db, "bookings", bookingId), { status: "declined" });
+                    }
+                    await this.fetchAndRenderBookings();
+                } catch (error) {
+                    console.error("Error updating status:", error);
+                    alert("Failed to update status.");
+                    target.disabled = false;
+                }
+            },
+
+            // --- Review Modal Logic ---
+            openReviewModal() {
+                this.DOMElements.reviewModal.classList.remove('hidden');
+            },
+            closeReviewModal() {
+                this.bookingToReview = null;
+                this.currentRating = 0;
+                this.DOMElements.reviewComment.value = '';
+                this.updateStarsUI(0);
+                this.DOMElements.reviewModal.classList.add('hidden');
+            },
+            handleStarClick(e) {
+                if(e.target.tagName === 'I') {
+                    this.currentRating = parseInt(e.target.dataset.value);
+                    this.updateStarsUI(this.currentRating);
+                }
+            },
+            updateStarsUI(rating) {
+                this.DOMElements.starRating.querySelectorAll('i').forEach(star => {
+                    star.classList.toggle('active', star.dataset.value <= rating);
+                });
+            },
+            async submitReview() {
+                if (this.currentRating === 0) {
+                    alert("Please select a star rating.");
+                    return;
+                }
+                this.DOMElements.submitReviewBtn.disabled = true;
+                this.DOMElements.submitReviewBtn.textContent = "Submitting...";
+
+                try {
+                    await addDoc(collection(db, "reviews"), {
+                        bookingId: this.bookingToReview.id,
+                        renterId: this.bookingToReview.renterId,
+                        renterName: this.bookingToReview.renterName,
+                        ownerId: this.currentUser.uid,
+                        ownerName: this.userData.username,
+                        rating: this.currentRating,
+                        comment: this.DOMElements.reviewComment.value,
+                        reviewOf: 'renter', // To distinguish this review
+                        createdAt: serverTimestamp(),
+                    });
+                    this.closeReviewModal();
+                    await this.fetchReviewedBookings();
+                    await this.fetchAndRenderBookings();
+                } catch (error) {
+                    console.error("Error submitting review:", error);
+                } finally {
+                    this.DOMElements.submitReviewBtn.disabled = false;
+                    this.DOMElements.submitReviewBtn.textContent = "Submit Review";
+                }
+            }
+        };
+
+        App.init();
+
+    </script>
+</body>
+</html>
+
