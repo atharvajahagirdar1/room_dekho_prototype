@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List Your Room - RoomDekho</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .form-section {
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 2rem;
+            margin-bottom: 2rem;
+        }
+        .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .custom-checkbox:checked,
+        .custom-radio:checked {
+            background-color: #2563eb;
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+            border-color: #2563eb;
+        }
+         .custom-radio:checked {
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+         }
+        .image-preview-item {
+            position: relative;
+            width: 100%;
+            padding-top: 100%; /* 1:1 Aspect Ratio */
+            background-color: #f3f4f6;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        .image-preview-item img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .remove-image-btn {
+            position: absolute;
+            top: 0.25rem;
+            right: 0.25rem;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 9999px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 0.25rem;
+        }
+        .remove-image-btn:hover {
+            transform: scale(1.1);
+            color: #ef4444; /* red-500 */
+        }
+        
+        /* Success Modal Styles */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: block;
+            stroke-width: 3;
+            stroke: #4ade80; /* green-400 */
+            stroke-miterlimit: 10;
+            box-shadow: inset 0px 0px 0px #4ade80;
+            animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+        }
+        .success-checkmark__check {
+            transform-origin: 50% 50%;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+        }
+        @keyframes stroke {
+            100% { stroke-dashoffset: 0; }
+        }
+        @keyframes scale {
+            0%, 100% { transform: none; }
+            50% { transform: scale3d(1.1, 1.1, 1); }
+        }
+        @keyframes fill {
+            100% { box-shadow: inset 0px 0px 0px 40px #4ade80; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
+    
+    <!-- Main Form Container -->
+    <div id="form-container" class="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 p-6 sm:p-8 md:p-10">
+        <div class="text-center mb-10">
+            <h1 id="page-title" class="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500">List Your Room</h1>
+            <p class="text-gray-500 mt-3">Please fill out the form below to list your room for rent.</p>
+        </div>
+
+        <form id="property-form">
+            <input type="hidden" id="property-id">
+            <input type="hidden" id="existingImageUrls" value="[]"> 
+            
+            <!-- Section 1: Room Details -->
+            <div class="form-section">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">1. Room Details</h2>
+                 <div class="mb-6">
+                    <label for="title" class="block text-sm font-medium text-gray-600 mb-2">Property Title</label>
+                    <input type="text" name="title" id="title" placeholder="e.g., Cozy Studio near Tech Park" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div>
+                        <label for="room_type" class="block text-sm font-medium text-gray-600 mb-2">Room Type</label>
+                        <select id="room_type" name="room_type" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+                            <option value="">Select...</option>
+                            <option value="1 RK">1 RK</option>
+                            <option value="1 BHK">1 BHK</option>
+                            <option value="2 BHK">2 BHK</option>
+                            <option value="PG">PG</option>
+                            <option value="Hostel">Hostel</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="rent" class="block text-sm font-medium text-gray-600 mb-2">Rent (per month)</label>
+                        <input type="number" name="rent" id="rent" placeholder="₹" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="deposit" class="block text-sm font-medium text-gray-600 mb-2">Security Deposit</label>
+                        <input type="number" name="deposit" id="deposit" placeholder="₹" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 2: Room Address -->
+            <div class="form-section">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">2. Room Address</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="address" class="block text-sm font-medium text-gray-600 mb-2">Address</label>
+                         <input type="text" name="address" id="address" placeholder="House/Flat No., Street Name" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="city" class="block text-sm font-medium text-gray-600 mb-2">City</label>
+                        <input type="text" name="city" id="city" placeholder="Enter city name" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: More Details -->
+            <div class="form-section">
+                 <h2 class="text-xl font-bold text-gray-800 mb-6">3. More Details</h2>
+                <div class="mt-8">
+                    <label class="block text-sm font-medium text-gray-600 mb-3">Furnishing Status</label>
+                    <div id="furnishing" class="flex flex-wrap gap-x-6 gap-y-3">
+                        <label class="flex items-center space-x-3 cursor-pointer"><input type="radio" name="furnishing" value="Furnished" class="custom-radio appearance-none w-5 h-5 border-2 border-gray-300 rounded-full"><span class="text-gray-700">Furnished</span></label>
+                        <label class="flex items-center space-x-3 cursor-pointer"><input type="radio" name="furnishing" value="Semi-Furnished" class="custom-radio appearance-none w-5 h-5 border-2 border-gray-300 rounded-full"><span class="text-gray-700">Semi-furnished</span></label>
+                        <label class="flex items-center space-x-3 cursor-pointer"><input type="radio" name="furnishing" value="Unfurnished" class="custom-radio appearance-none w-5 h-5 border-2 border-gray-300 rounded-full"><span class="text-gray-700">Unfurnished</span></label>
+                    </div>
+                </div>
+                 <div class="mt-8">
+                    <label class="block text-sm font-medium text-gray-600 mb-3">Available For</label>
+                    <div id="available_for" class="flex flex-wrap gap-x-6 gap-y-3">
+                        <label class="flex items-center space-x-3 cursor-pointer"><input type="checkbox" name="available_for" value="Family" class="custom-checkbox appearance-none h-5 w-5 border-2 border-gray-300 rounded"><span class="text-gray-700">Family</span></label>
+                        <label class="flex items-center space-x-3 cursor-pointer"><input type="checkbox" name="available_for" value="Bachelors" class="custom-checkbox appearance-none h-5 w-5 border-2 border-gray-300 rounded"><span class="text-gray-700">Bachelors</span></label>
+                        <label class="flex items-center space-x-3 cursor-pointer"><input type="checkbox" name="available_for" value="Students" class="custom-checkbox appearance-none h-5 w-5 border-2 border-gray-300 rounded"><span class="text-gray-700">Students</span></label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Amenities -->
+            <div class="form-section">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">4. Amenities</h2>
+                <div id="amenities" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-4">
+                    <label class="flex items-center space-x-3 cursor-pointer"><input type="checkbox" value="Wi-Fi" class="custom-checkbox appearance-none h-5 w-5 border-2 border-gray-300 rounded"><span class="text-gray-700">Wi-Fi</span></label>
+                    <label class="flex items-center space-x-3 cursor-pointer"><input type="checkbox" value="AC" class="custom-checkbox appearance-none h-5 w-5 border-2 border-gray-300 rounded"><span class="text-gray-700">AC</span></label>
+                    <label class="flex items-center space-x-3 cursor-pointer"><input type="checkbox" value="Geyser" class="custom-checkbox appearance-none h-5 w-5 border-2 border-gray-300 rounded"><span class="text-gray-700">Geyser</span></label>
+                    <label class="flex items-center space-x-3 cursor-pointer"><input type="checkbox" value="Parking" class="custom-checkbox appearance-none h-5 w-5 border-2 border-gray-300 rounded"><span class="text-gray-700">Parking</span></label>
+                    <label class="flex items-center space-x-3 cursor-pointer"><input type="checkbox" value="Kitchen" class="custom-checkbox appearance-none h-5 w-5 border-2 border-gray-300 rounded"><span class="text-gray-700">Kitchen</span></label>
+                    <label class="flex items-center space-x-3 cursor-pointer"><input type="checkbox" value="Power Backup" class="custom-checkbox appearance-none h-5 w-5 border-2 border-gray-300 rounded"><span class="text-gray-700">Power Backup</span></label>
+                </div>
+            </div>
+
+            <!-- Section 5: Description and Photos -->
+            <div class="form-section">
+                 <h2 class="text-xl font-bold text-gray-800 mb-6">5. Description & Photos</h2>
+                 <div class="grid grid-cols-1 gap-6">
+                     <div>
+                        <label for="description" class="block text-sm font-medium text-gray-600 mb-2">Description</label>
+                        <textarea id="description" name="description" placeholder="E.g., the room is on the ground floor, market is nearby, etc." class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" rows="4"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-2">Upload Room Photos</label>
+                        <div id="image-preview-container" class="mt-2 grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+                            <label for="file-upload" class="cursor-pointer w-full h-24 bg-gray-50 border-2 border-gray-300 border-dashed rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:border-gray-400 transition">
+                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            </label>
+                        </div>
+                        <input id="file-upload" name="file-upload" type="file" class="sr-only" accept="image/png, image/jpeg" multiple>
+                    </div>
+                 </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-between items-center pt-4">
+                <a href="owner-dashboard.html" class="text-gray-600 hover:text-indigo-600 font-medium">Cancel</a>
+                <button id="submitBtn" type="submit" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md">
+                    Submit Property
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop bg-black bg-opacity-50 hidden">
+        <div class="bg-white w-full max-w-md rounded-lg shadow-xl p-8 text-center">
+            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full">
+                <svg class="success-checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                    <circle class="success-checkmark__circle" cx="26" cy="26" r="25" fill="none" stroke="#4ade80"/>
+                    <path class="success-checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+            </div>
+            <h3 id="successTitle" class="text-2xl font-bold text-gray-900 mt-6">Property Listed!</h3>
+            <p id="successMessage" class="mt-2 text-gray-600">Your property has been successfully listed and is now visible to renters.</p>
+            <div class="mt-8">
+                <button id="successDoneBtn" class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">Done</button>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, collection, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        // --- 1. YOUR CLOUDINARY DETAILS ---
+        const CLOUDINARY_CLOUD_NAME = "dpepbarzs"; 
+        const CLOUDINARY_UPLOAD_PRESET = "roomdekho_preset";
+        // ------------------------------------
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyQlPonxZFcMJ2DG7Gh3TpizWbpKhN9nI",
+            authDomain: "room-dekho-ecf17.firebaseapp.com",
+            projectId: "room-dekho-ecf17",
+            storageBucket: "room-dekho-ecf17.appspot.com",
+            messagingSenderId: "171669282445",
+            appId: "1:171669282445:web:4ae6f044a49bdbe3ba4cc4",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let isEditing = false;
+        let editPropertyId = null;
+        let newFiles = []; 
+        let existingImageUrls = []; 
+
+        const formContainer = document.getElementById('form-container');
+        const form = document.getElementById('property-form');
+        const submitBtn = document.getElementById('submitBtn');
+        const fileInput = document.getElementById('file-upload');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const hiddenImageUrlsInput = document.getElementById('existingImageUrls');
+        const successModal = document.getElementById('successModal');
+        const successDoneBtn = document.getElementById('successDoneBtn');
+        const successTitle = document.getElementById('successTitle');
+        const successMessage = document.getElementById('successMessage');
+
+        fileInput.addEventListener('change', (e) => {
+            for (const file of e.target.files) {
+                newFiles.push(file);
+            }
+            renderImagePreviews();
+            fileInput.value = null;
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('edit') === 'true' && urlParams.has('id')) {
+                    isEditing = true;
+                    editPropertyId = urlParams.get('id');
+                    await loadPropertyForEditing(editPropertyId);
+                }
+            } else {
+                // No alert, just redirect
+                window.location.href = 'login.html';
+            }
+        });
+        
+        async function loadPropertyForEditing(propertyId) {
+            document.getElementById('page-title').textContent = "Edit Your Property";
+            submitBtn.textContent = "Update Property";
+            
+            const propDoc = await getDoc(doc(db, "rooms", propertyId));
+            if (!propDoc.exists() || propDoc.data().ownerId !== currentUser.uid) {
+                console.error("Permission denied or property not found.");
+                window.location.href = 'owner-dashboard.html';
+                return;
+            }
+            
+            const data = propDoc.data();
+            
+            document.getElementById('title').value = data.title || '';
+            document.getElementById('address').value = data.address || '';
+            document.getElementById('city').value = data.city || '';
+            document.getElementById('room_type').value = data.roomType || '';
+            document.getElementById('rent').value = data.price || '';
+            document.getElementById('deposit').value = data.deposit || '';
+            document.getElementById('description').value = data.description || '';
+            
+            existingImageUrls = data.imageUrls || (data.imageUrl ? [data.imageUrl] : []);
+            hiddenImageUrlsInput.value = JSON.stringify(existingImageUrls);
+            renderImagePreviews();
+            
+            if (data.furnishing) {
+                const el = document.querySelector(`input[name="furnishing"][value="${data.furnishing}"]`);
+                if (el) el.checked = true;
+            }
+            (data.availableFor || []).forEach(val => {
+                 const el = document.querySelector(`input[name="available_for"][value="${val}"]`);
+                 if(el) el.checked = true;
+            });
+            (data.amenities || []).forEach(val => {
+                 const el = document.querySelector(`#amenities input[value="${val}"]`);
+                 if(el) el.checked = true;
+            });
+        }
+
+        function renderImagePreviews() {
+            imagePreviewContainer.innerHTML = '';
+            let previewItems = '';
+            
+            existingImageUrls.forEach((url, index) => {
+                previewItems += createPreviewCard(url, index, 'existing');
+            });
+            newFiles.forEach((file, index) => {
+                const previewUrl = URL.createObjectURL(file);
+                previewItems += createPreviewCard(previewUrl, index, 'new');
+            });
+
+            const addButton = `
+                <label for="file-upload" class="cursor-pointer w-full h-24 bg-gray-50 border-2 border-gray-300 border-dashed rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:border-gray-400 transition">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                </label>
+            `;
+            imagePreviewContainer.innerHTML = previewItems + addButton;
+        }
+
+        function createPreviewCard(url, index, type) {
+            return `
+                <div class="image-preview-item w-full rounded-lg overflow-hidden shadow-sm">
+                    <img src="${url}" class="w-full h-full object-cover absolute inset-0">
+                    <button type="button" onclick="removeImage(${index}, '${type}')" class="remove-image-btn p-1 text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            `;
+        }
+
+        window.removeImage = (index, type) => {
+            if (type === 'new') {
+                newFiles.splice(index, 1);
+            } else if (type === 'existing') {
+                existingImageUrls.splice(index, 1);
+            }
+            renderImagePreviews();
+        }
+
+        async function uploadToCloudinary(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+            
+            const response = await fetch(uploadUrl, { method: 'POST', body: formData });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Cloudinary upload failed: ${errorData.error.message}`);
+            }
+            const data = await response.json();
+            return data.secure_url;
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (newFiles.length === 0 && existingImageUrls.length === 0) {
+                alert('Please upload at least one property image.');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                submitBtn.textContent = `Uploading ${newFiles.length} new images...`;
+                const uploadPromises = newFiles.map(file => uploadToCloudinary(file));
+                const newImageUrls = await Promise.all(uploadPromises);
+
+                const allImageUrls = [...existingImageUrls, ...newImageUrls];
+                
+                submitBtn.textContent = 'Saving data...';
+
+                const getCheckedValues = (selector) => Array.from(document.querySelectorAll(selector)).filter(el => el.checked).map(el => el.value);
+                const roomType = document.getElementById('room_type').value;
+                let tags = getCheckedValues('#amenities input:checked');
+                if (!tags.includes(roomType)) tags.push(roomType);
+
+                const propertyData = {
+                    title: document.getElementById('title').value,
+                    location: document.getElementById('address').value + ", " + document.getElementById('city').value,
+                    city: document.getElementById('city').value,
+                    address: document.getElementById('address').value,
+                    roomType: roomType,
+                    price: parseFloat(document.getElementById('rent').value),
+                    deposit: parseFloat(document.getElementById('deposit').value),
+                    furnishing: document.querySelector('input[name="furnishing"]:checked')?.value || null,
+                    availableFor: getCheckedValues('input[name="available_for"]:checked'),
+                    amenities: getCheckedValues('#amenities input:checked'),
+                    tags: tags,
+                    description: document.getElementById('description').value,
+                    imageUrl: allImageUrls[0] || null, 
+                    imageUrls: allImageUrls, 
+                    ownerId: currentUser.uid,
+                    ownerEmail: currentUser.email,
+                    status: 'Available',
+                };
+
+                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                if (userDoc.exists()) {
+                    propertyData.ownerName = userDoc.data().username || 'Owner';
+                }
+
+                if (isEditing) {
+                    await updateDoc(doc(db, "rooms", editPropertyId), propertyData);
+                    showSuccessModal("Property Updated!");
+                } else {
+                    propertyData.createdAt = serverTimestamp();
+                    await addDoc(collection(db, "rooms"), propertyData);
+                    showSuccessModal("Property Listed!");
+                }
+                
+            } catch (error) {
+                console.error("Error saving property: ", error);
+                alert(`An error occurred: ${error.message}`);
+                submitBtn.disabled = false;
+                submitBtn.textContent = isEditing ? 'Update Property' : 'Submit Property';
+            }
+        });
+        
+        function showSuccessModal(title) {
+            formContainer.style.display = 'none';
+            successTitle.textContent = title;
+            successMessage.textContent = `Your property is now live. You will be redirected to your dashboard.`;
+            successModal.classList.remove('hidden');
+        }
+
+        successDoneBtn.addEventListener('click', () => {
+             window.location.href = 'owner-dashboard.html';
+        });
+
+    </script>
+</body>
+</html>
+

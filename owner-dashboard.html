@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Dashboard - RoomDekho</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7fafc;
+        }
+        .sidebar-link.active {
+            background-color: #eef2ff;
+            color: #4338ca;
+            font-weight: 600;
+        }
+         .sidebar-link.active i {
+            color: #4338ca;
+        }
+        
+        /* Styles from your new My Listings page */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .table-row-item {
+            opacity: 0; /* Start hidden for animation */
+            animation: fadeInUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+        .table-row-item:nth-child(1) { animation-delay: 0.1s; }
+        .table-row-item:nth-child(2) { animation-delay: 0.2s; }
+        .table-row-item:nth-child(3) { animation-delay: 0.3s; }
+
+        .animated-button {
+            background-size: 200% auto;
+            transition: all 0.4s ease-out;
+            box-shadow: 0 4px 6px rgba(50,50,93,.11), 0 1px 3px rgba(0,0,0,.08);
+        }
+        .animated-button:hover {
+            background-position: right center;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08);
+        }
+    </style>
+</head>
+<body class="flex h-screen bg-gray-100">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white shadow-md flex flex-col flex-shrink-0">
+        <div class="h-20 flex items-center justify-center border-b">
+            <h1 class="text-2xl font-bold text-indigo-600">RoomDekho</h1>
+        </div>
+        <nav class="flex-1 px-4 py-6 space-y-2">
+            <a href="#dashboard-overview" class="sidebar-link active flex items-center px-4 py-2 text-gray-700 rounded-md">
+                <i class="fas fa-tachometer-alt w-6 h-6 mr-3 text-gray-500"></i> Dashboard
+            </a>
+            <a href="#my-listings" class="sidebar-link flex items-center px-4 py-2 text-gray-700 rounded-md">
+                <i class="fas fa-list w-6 h-6 mr-3 text-gray-500"></i> My Listings
+            </a>
+            <a href="#booking-requests" class="sidebar-link flex items-center px-4 py-2 text-gray-700 rounded-md">
+                <i class="fas fa-calendar-check w-6 h-6 mr-3 text-gray-500"></i> Bookings
+            </a>
+            <a href="#reviews" class="sidebar-link flex items-center px-4 py-2 text-gray-700 rounded-md">
+                <i class="fas fa-star w-6 h-6 mr-3 text-gray-500"></i> Reviews
+            </a>
+             <a href="#analytics" class="sidebar-link flex items-center px-4 py-2 text-gray-700 rounded-md">
+                <i class="fas fa-chart-line w-6 h-6 mr-3 text-gray-500"></i> Analytics
+            </a>
+            <a href="#" class="sidebar-link flex items-center px-4 py-2 text-gray-700 rounded-md hover:bg-gray-100">
+                <i class="fas fa-cog w-6 h-6 mr-3 text-gray-500"></i> Settings
+            </a>
+        </nav>
+        <div class="px-4 py-6 border-t">
+            <button id="logoutBtn" class="w-full flex items-center px-4 py-2 text-gray-700 rounded-md hover:bg-gray-100">
+                <i class="fas fa-sign-out-alt w-6 h-6 mr-3 text-gray-500"></i> Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Header -->
+        <header class="bg-white shadow-sm">
+            <div class="px-8 h-20 flex items-center justify-between">
+                <h2 id="header-title" class="text-xl font-semibold text-gray-800">Dashboard Overview</h2>
+                <div class="relative">
+                    <div id="userMenuBtn" class="flex items-center space-x-3 cursor-pointer">
+                        <span id="userName" class="font-semibold text-gray-700">Owner</span>
+                        <img id="userAvatar" class="h-10 w-10 rounded-full object-cover" src="https://placehold.co/40x40/E2E8F0/4A5568?text=O" alt="User Avatar">
+                    </div>
+                     <div id="userMenu" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 hidden">
+                         <!-- ***** THIS LINK IS NOW CORRECTED ***** -->
+                         <a href="owner-profile.html" id="profileLink" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Your Profile</a>
+                     </div>
+                </div>
+            </div>
+        </header>
+        
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-8">
+            <!-- Dashboard Overview Section -->
+            <section id="dashboard-overview" class="main-section">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" id="stats-grid">
+                     <!-- Stat Cards Loaded Here -->
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-semibold text-gray-800">Booking Trends</h3>
+                        <canvas id="bookingTrendsChart"></canvas>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow flex flex-col">
+                        <h3 class="font-semibold text-gray-800">Revenue Overview</h3>
+                        <div class="flex-grow flex items-center justify-center">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- My Listings -->
+            <section id="my-listings" class="main-section mb-8 hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">My Listings</h3>
+                    <a href="add-new-property.html" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 text-sm">Add New Property</a>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50/70">
+                            <tr>
+                                <th scope="col" class="px-6 py-4 font-semibold tracking-wider">Property Details</th>
+                                <th scope="col" class="px-6 py-4 font-semibold tracking-wider">Rent</th>
+                                <th scope="col" class="px-6 py-4 font-semibold tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-4 font-semibold tracking-wider text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listingsTableBody">
+                            <tr id="listingsLoader">
+                                <td colspan="4" class="text-center p-8 text-gray-500">Loading your listings...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+             <!-- Booking Requests -->
+            <section id="booking-requests" class="main-section mb-8 hidden">
+                <h3 class="text-xl font-semibold mb-4 text-gray-800">Booking Requests</h3>
+                <div id="bookingsList" class="space-y-4 bg-white p-6 rounded-lg shadow">
+                    <p id="bookingsLoader" class="text-gray-500">Loading requests...</p>
+                </div>
+            </section>
+            
+             <!-- Reviews & Feedback -->
+            <section id="reviews" class="main-section mb-8 hidden">
+                <h3 class="text-xl font-semibold mb-4 text-gray-800">Reviews & Feedback</h3>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div id="reviewsList" class="space-y-4">
+                       <p id="reviewsLoader" class="text-gray-500">Loading reviews...</p>
+                    </div>
+                </div>
+            </section>
+            
+             <!-- Analytics -->
+            <section id="analytics" class="main-section mb-8 hidden">
+                <h3 class="text-xl font-semibold mb-4 text-gray-800">Analytics & Insights</h3>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                         <h4 class="font-medium">Occupancy Rate</h4>
+                          <canvas id="occupancyChart"></canvas>
+                     </div>
+                     <div class="bg-white p-6 rounded-lg shadow">
+                         <h4 class="font-medium">Monthly Reviews</h4>
+                         <canvas id="reviewsChart"></canvas>
+                     </div>
+                 </div>
+            </section>
+        </main>
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, query, where, updateDoc, runTransaction, deleteDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        // --- Firebase Config ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyQlPonxZFcMJ2DG7Gh3TpizWbpKhN9nI",
+            authDomain: "room-dekho-ecf17.firebaseapp.com",
+            projectId: "room-dekho-ecf17",
+            storageBucket: "room-dekho-ecf17.appspot.com",
+            messagingSenderId: "171669282445",
+            appId: "1:171669282445:web:4ae6f044a49bdbe3ba4cc4",
+        };
+        
+        // --- App Initialization ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- App State ---
+        let currentUser = null;
+        let userData = {};
+
+        // --- DOM Elements ---
+        const ui = {
+            userName: document.getElementById('userName'),
+            userAvatar: document.getElementById('userAvatar'),
+            userMenuBtn: document.getElementById('userMenuBtn'),
+            userMenu: document.getElementById('userMenu'),
+            logoutBtn: document.getElementById('logoutBtn'),
+            headerTitle: document.getElementById('header-title'),
+            sidebarLinks: document.querySelectorAll('.sidebar-link'),
+            mainSections: document.querySelectorAll('.main-section'),
+            statsGrid: document.getElementById('stats-grid'),
+            listingsTableBody: document.getElementById('listingsTableBody'), // Updated
+            listingsLoader: document.getElementById('listingsLoader'),
+            bookingsList: document.getElementById('bookingsList'),
+            bookingsLoader: document.getElementById('bookingsLoader'),
+            reviewsList: document.getElementById('reviewsList'),
+            reviewsLoader: document.getElementById('reviewsLoader'),
+            profileLink: document.getElementById('profileLink')
+        };
+        
+        // --- Auth Handling ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists() && userDoc.data().userType === 'owner') {
+                    userData = userDoc.data();
+                    renderUserInfo();
+                    loadDashboardData();
+                    bindEvents();
+                } else {
+                    window.location.href = 'renter-dashboard.html';
+                }
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+        function renderUserInfo() {
+            ui.userName.textContent = userData.username || currentUser.email;
+            if (userData.username) {
+                ui.userAvatar.src = `https://placehold.co/40x40/E2E8F0/4A5568?text=${userData.username.charAt(0).toUpperCase()}`;
+            }
+            // This was the link to the public profile, now it's corrected
+            ui.profileLink.href = `owner-profile.html`;
+        }
+        
+        function bindEvents() {
+            ui.logoutBtn.addEventListener('click', () => signOut(auth));
+            ui.userMenuBtn.addEventListener('click', () => ui.userMenu.classList.toggle('hidden'));
+            
+            ui.sidebarLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = new URL(link.href).hash.substring(1) || 'dashboard-overview';
+                    
+                    ui.mainSections.forEach(section => section.classList.add('hidden'));
+                    document.getElementById(targetId).classList.remove('hidden');
+                    
+                    ui.sidebarLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                    
+                    ui.headerTitle.textContent = link.textContent.trim();
+                });
+            });
+
+            ui.listingsTableBody.addEventListener('click', (e) => {
+                 const target = e.target.closest('button');
+                 if (!target) return;
+                 
+                 const id = target.dataset.id;
+                 if (!id) return;
+                 
+                 if (target.classList.contains('delete-btn')) {
+                    if(confirm('Are you sure you want to delete this listing?')) {
+                        deleteListing(id);
+                    }
+                 }
+                 if (target.classList.contains('edit-btn')) {
+                     window.location.href = `add-new-property.html?edit=true&id=${id}`;
+                 }
+            });
+            
+            ui.bookingsList.addEventListener('click', (e) => {
+                const target = e.target;
+                if(target.classList.contains('accept-btn') || target.classList.contains('decline-btn')) {
+                    const bookingId = target.dataset.id;
+                    const roomId = target.dataset.roomId;
+                    const status = target.classList.contains('accept-btn') ? 'accepted' : 'declined';
+                    updateBookingStatus(bookingId, roomId, status, target);
+                }
+            });
+        }
+        
+        async function loadDashboardData() {
+            const listingsQuery = query(collection(db, "rooms"), where("ownerId", "==", currentUser.uid));
+            const bookingsQuery = query(collection(db, "bookings"), where("ownerId", "==", currentUser.uid));
+            const reviewsQuery = query(collection(db, "reviews"), where("ownerId", "==", currentUser.uid));
+
+            const [listingsSnapshot, bookingsSnapshot, reviewsSnapshot] = await Promise.all([
+                getDocs(listingsQuery), getDocs(bookingsQuery), getDocs(reviewsQuery)
+            ]);
+
+            const listings = listingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const bookings = bookingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const reviews = reviewsSnapshot.docs.map(doc => doc.data());
+
+            loadStats(listings, bookings); // Pass both lists
+            loadListings(listings);
+            loadBookings(bookings);
+            loadReviews(reviews);
+            renderCharts(bookings, reviews);
+        }
+        
+        // --- UPDATED STATS FUNCTION ---
+        function loadStats(listings, bookings) {
+            const acceptedBookings = bookings.filter(b => b.status === 'accepted');
+            
+            // Calculate revenue by summing the price of rooms from accepted bookings
+            let totalRevenue = 0;
+            acceptedBookings.forEach(booking => {
+                const room = listings.find(l => l.id === booking.roomId);
+                if (room && typeof room.price === 'number') {
+                    totalRevenue += room.price;
+                }
+            });
+
+             ui.statsGrid.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-gray-500">Total Listings</h3><p class="text-3xl font-bold mt-1">${listings.length}</p></div>
+                <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-gray-500">Active Bookings</h3><p class="text-3xl font-bold mt-1">${acceptedBookings.length}</p></div>
+                <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-gray-500">Pending Requests</h3><p class="text-3xl font-bold mt-1">${bookings.filter(b => b.status === 'pending').length}</p></div>
+                <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-gray-500">Total Revenue</h3><p class="text-3xl font-bold mt-1">₹${totalRevenue.toLocaleString()}</p></div>
+            `;
+        }
+        
+        function loadListings(listings) {
+            ui.listingsLoader.style.display = 'none';
+            ui.listingsTableBody.innerHTML = '';
+            
+            if (listings.length === 0) {
+                ui.listingsTableBody.innerHTML = `<tr><td colspan="4" class="text-center p-8 text-gray-500">No listings found.</td></tr>`;
+                return;
+            }
+            
+            listings.forEach((room, index) => {
+                ui.listingsTableBody.innerHTML += createListingRow(room, index);
+            });
+        }
+        
+        function createListingRow(room, index) {
+            const status = room.status || 'Available';
+            const statusColor = status === 'Booked' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
+            const statusDot = status === 'Booked' ? 'bg-red-500' : 'bg-green-500';
+            const imageUrl = Array.isArray(room.imageUrls) ? room.imageUrls[0] : room.imageUrl; // Handle new array format
+
+            return `
+                <tr class="table-row-item bg-white border-b transition duration-300 ease-in-out hover:bg-gray-50" style="animation-delay: ${index * 0.1}s">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center space-x-4">
+                            <img class="h-20 w-28 object-cover rounded-lg flex-shrink-0" src="${imageUrl || 'https://placehold.co/112x80'}" alt="Room Image">
+                            <div>
+                                <div class="text-base font-bold text-gray-900">${room.title}</div>
+                                <div class="font-normal text-gray-600 mt-1">${room.location}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 align-middle">
+                        <p class="text-lg font-bold text-gray-800">₹${room.price.toLocaleString()}<span class="text-sm font-medium text-gray-500">/mo</span></p>
+                    </td>
+                    <td class="px-6 py-4 align-middle">
+                        <div class="inline-flex items-center ${statusColor} text-xs font-semibold px-3 py-1.5 rounded-full">
+                            <span class="h-2 w-2 rounded-full ${statusDot} mr-2"></span>
+                            ${status}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 align-middle text-center space-x-2">
+                        <button class="edit-btn inline-block text-center bg-gray-200 text-gray-800 font-semibold py-2.5 px-5 rounded-lg animated-button text-xs" data-id="${room.id}">Edit</button>
+                        <button class="delete-btn inline-block text-center bg-red-500 text-white font-semibold py-2.5 px-5 rounded-lg animated-button text-xs" data-id="${room.id}">Delete</button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        async function deleteListing(listingId) {
+            try {
+                await deleteDoc(doc(db, "rooms", listingId));
+                await loadDashboardData();
+            } catch (error) {
+                console.error("Error deleting listing: ", error);
+                alert("Failed to delete listing.");
+            }
+        }
+        
+        function loadBookings(bookings) {
+             ui.bookingsList.innerHTML = '';
+             ui.bookingsLoader.style.display = 'none';
+            if (bookings.length === 0) {
+                ui.bookingsList.innerHTML = '<p class="text-gray-500">No new booking requests.</p>';
+                return;
+            }
+            bookings.sort((a,b) => b.createdAt.toMillis() - a.createdAt.toMillis()).forEach(b => ui.bookingsList.innerHTML += createBookingRow(b));
+        }
+
+        function createBookingRow(booking) {
+            const statusStyles = { pending: 'bg-yellow-100 text-yellow-800', accepted: 'bg-green-100 text-green-800', declined: 'bg-red-100 text-red-800' };
+            const actionButtons = booking.status === 'pending' ? `<div class="flex space-x-2"><button class="accept-btn bg-green-500 text-white px-3 py-1 text-xs rounded-md" data-id="${booking.id}" data-room-id="${booking.roomId}">Accept</button><button class="decline-btn bg-red-500 text-white px-3 py-1 text-xs rounded-md" data-id="${booking.id}">Decline</button></div>` : '';
+            return `<div class="flex items-center justify-between py-2 border-b"><p class="font-medium">${booking.renterName} for ${booking.roomTitle}</p><div class="flex items-center gap-4"><span class="capitalize text-xs font-semibold px-2 py-1 rounded-full ${statusStyles[booking.status] || ''}">${booking.status}</span>${actionButtons}</div></div>`;
+        }
+
+        async function updateBookingStatus(bookingId, roomId, status, button) {
+            button.disabled = true;
+            button.textContent = '...';
+            try {
+                if (status === 'accepted') {
+                    await runTransaction(db, async (t) => {
+                        t.update(doc(db, "bookings", bookingId), { status: "accepted" });
+                        t.update(doc(db, "rooms", roomId), { status: "Booked" });
+                    });
+                } else {
+                    await updateDoc(doc(db, "bookings", bookingId), { status: "declined" });
+                }
+                await loadDashboardData();
+            } catch (error) {
+                console.error("Error updating status:", error);
+                button.disabled = false;
+            }
+        }
+        
+        function loadReviews(reviews){
+             const list = document.getElementById('reviewsList');
+             list.innerHTML = '';
+             ui.reviewsLoader.style.display = 'none';
+             if(reviews.length === 0){
+                 list.innerHTML = '<p class="text-gray-500">No reviews yet.</p>';
+                 return;
+             }
+             reviews.forEach(r => list.innerHTML += `<div class="border-t py-4"><div class="flex items-center mb-2"><div class="flex text-yellow-400">${[...Array(5)].map((_, i) => `<i class="fas fa-star ${i < r.rating ? '' : 'text-gray-300'}"></i>`).join('')}</div><p class="ml-auto text-sm text-gray-500">by ${r.renterName}</p></div><p class="text-gray-600 text-sm">${r.comment}</p></div>`);
+        }
+        
+        function renderCharts(bookings, reviews) {
+            // Chart rendering logic with dummy data
+            new Chart(document.getElementById('bookingTrendsChart'), { type: 'line', data: { labels: ['Jan', 'Feb', 'Mar', 'Apr'], datasets: [{ label: 'Bookings', data: [1, 3, 2, 4], borderColor: '#4F46E5', tension: 0.1 }] } });
+            new Chart(document.getElementById('revenueChart'), { type: 'doughnut', data: { labels: ['Booked', 'Available'], datasets: [{ data: [30000, 15000], backgroundColor: ['#4F46E5', '#D1D5DB'] }] } });
+            new Chart(document.getElementById('occupancyChart'), { type: 'bar', data: { labels: ['Property A', 'B'], datasets: [{ label: 'Occupancy %', data: [80, 65], backgroundColor: '#4F46E5' }] } });
+            new Chart(document.getElementById('reviewsChart'), { type: 'radar', data: { labels: ['Cleanliness', 'Communication', 'Value'], datasets: [{ label: 'Avg. Rating', data: [4.5, 4.8, 4.2], borderColor: '#4F46E5' }] } });
+        }
+    </script>
+</body>
+</html>
+
