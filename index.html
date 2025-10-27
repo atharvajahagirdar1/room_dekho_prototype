@@ -60,7 +60,6 @@
             border-color: #4f46e5;
         }
         
-        /* New utility class to hide scrollbar */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -88,7 +87,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="container mx-auto px-4 lg:px-8 py-8">
+    <main id="main-content" class="container mx-auto px-4 lg:px-8 py-8">
         
         <!-- Hero and Search Section -->
         <section class="text-center py-12 md:py-24">
@@ -155,7 +154,7 @@
             </div>
         </section>
 
-        <!-- NEW: Popular Areas Section -->
+        <!-- Popular Areas Section -->
         <section class="mt-20 py-12">
             <h2 class="text-3xl font-bold text-center mb-8">Popular Areas in Pune</h2>
             <div class="flex gap-6 overflow-x-auto pb-4 no-scrollbar">
@@ -293,6 +292,7 @@
 
         const ui = {
             navContent: document.getElementById('nav-content'),
+            mainContent: document.getElementById('main-content'),
             listingsGrid: document.getElementById('listingsGrid'),
             roomCount: document.getElementById('roomCount'),
             searchInput: document.getElementById('searchInput'),
@@ -317,18 +317,36 @@
         // --- AUTHENTICATION & HEADER ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                // --- USER IS LOGGED IN ---
+                // Show a loading message and hide the main content
+                if(ui.mainContent) ui.mainContent.innerHTML = `<div class="flex items-center justify-center min-h-[50vh]"><p class="text-xl font-semibold">Loading your dashboard...</p></div>`;
+                
                 state.currentUser = user;
                 const userDoc = await getDoc(doc(db, "users", user.uid));
-                renderLoggedInHeader(userDoc.exists() ? userDoc.data() : {});
-                if (userDoc.exists() && userDoc.data().userType === 'renter') {
-                    state.savedRoomIds = userDoc.data().savedRooms || [];
-                    updateSavedCount();
+                
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    // REDIRECT based on user type
+                    if (userData.userType === 'renter') {
+                        window.location.href = 'renter-dashboard.html';
+                    } else if (userData.userType === 'owner') {
+                        window.location.href = 'owner-dashboard.html';
+                    } else {
+                        // Onboarding not complete
+                        window.location.href = 'onboarding.html';
+                    }
+                } else {
+                    // No user doc, force onboarding
+                    window.location.href = 'onboarding.html';
                 }
             } else {
+                // --- USER IS A GUEST ---
                 state.currentUser = null;
                 renderLoggedOutHeader();
+                bindHeaderEvents();
+                await fetchRooms(true); // Fetch rooms for the guest
+                bindFilterEvents(); // Bind all the filter/search buttons
             }
-            await fetchRooms(true);
         });
 
         function renderLoggedInHeader(userData) {
@@ -345,23 +363,18 @@
                     </div>
                 </div>
             `;
-            // Re-bind events for new elements
-            document.getElementById('userMenuBtn').addEventListener('click', () => {
-                document.getElementById('userMenu').classList.toggle('hidden');
-            });
-            document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
         }
 
         function renderLoggedOutHeader() {
             ui.navContent.innerHTML = `
                 <div class="flex items-center space-x-2">
-                    <a href="login.html" class="px-5 py-2 text-gray-600 font-medium hover:text-primary">Login</a>
+                    <a href="login.html?form=login" class="px-5 py-2 text-gray-600 font-medium hover:text-primary">Login</a>
                     <a href="login.html?form=signup" class="px-5 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-all">Sign Up</a>
                 </div>
             `;
         }
 
-        // --- DATA FETCHING & RENDERING ---
+        // --- DATA FETCHING & RENDERING (for Guests) ---
         async function fetchRooms(initial = false) {
             if (initial) {
                 state.allRooms = [];
@@ -410,8 +423,6 @@
         }
 
         function createRoomCardHTML(room) {
-            const isSaved = state.currentUser ? state.savedRoomIds.includes(room.id) : false;
-            
             let tags = room.tags || [];
             if (room.roomType && !tags.includes(room.roomType)) {
                  tags.push(room.roomType);
@@ -421,16 +432,17 @@
             }
 
             const tagsHTML = tags.slice(0, 2).map(tag => `<span class="bg-gray-100 px-2 py-1 rounded text-xs">${tag}</span>`).join('');
+            const imageUrl = Array.isArray(room.imageUrls) ? room.imageUrls[0] : room.imageUrl;
 
             return `
                 <div class="property-card bg-white rounded-xl shadow-md overflow-hidden card-hover flex flex-col">
                     <div class="relative">
                         <a href="room-details.html?id=${room.id}" class="block">
-                            <img class="h-48 w-full object-cover" src="${room.imageUrl || 'https://placehold.co/400x250/A4B4C4/FFFFFF?text=Room'}" alt="${room.title}">
+                            <img class="h-48 w-full object-cover" src="${imageUrl || 'https://placehold.co/400x250/A4B4C4/FFFFFF?text=Room'}" alt="${room.title}">
                         </a>
                         <div class="absolute top-3 left-3 bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-md">Available Now</div>
                         <button class="save-btn absolute top-3 right-3 bg-white/70 backdrop-blur-sm p-2 rounded-full text-gray-600 hover:scale-110 transition-transform" data-id="${room.id}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${isSaved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" class="h-5 w-5 ${isSaved ? 'text-red-500' : 'text-gray-500'}"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5 text-gray-500"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
                         </button>
                     </div>
                     <div class="p-4 flex flex-col flex-grow">
@@ -494,43 +506,7 @@
              window.location.href = 'login.html';
         }
 
-        async function toggleSaveProperty(roomId) {
-            if (!state.currentUser) {
-                showLoginPrompt();
-                return;
-            }
-            if (state.currentUser) {
-                 const userDoc = await getDoc(doc(db, "users", state.currentUser.uid));
-                 if(userDoc.data().userType !== 'renter') {
-                     alert("Only renters can save properties.");
-                     return;
-                 }
-            }
-            const userDocRef = doc(db, "users", state.currentUser.uid);
-            const isSaved = state.savedRoomIds.includes(roomId);
-            try {
-                if (isSaved) {
-                    await updateDoc(userDocRef, { savedRooms: arrayRemove(roomId) });
-                    state.savedRoomIds = state.savedRoomIds.filter(id => id !== roomId);
-                } else {
-                    await updateDoc(userDocRef, { savedRooms: arrayUnion(roomId) });
-                    state.savedRoomIds.push(roomId);
-                }
-                updateSavedCount();
-                applyFilters();
-            } catch (error) {
-                console.error("Error updating saved rooms:", error);
-            }
-        }
-
-        function updateSavedCount() {
-            if(state.currentUser) {
-                ui.savedCount.textContent = state.savedRoomIds.length;
-            }
-        }
-        
         // --- EVENT LISTENERS ---
-        // Need to bind these after header is rendered
         function bindHeaderEvents() {
             const logoutBtn = document.getElementById('logoutBtn');
             const userMenuBtn = document.getElementById('userMenuBtn');
@@ -549,58 +525,29 @@
             });
         }
         
-        // Update auth change to call bindHeaderEvents
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                state.currentUser = user;
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                renderLoggedInHeader(userDoc.exists() ? userDoc.data() : {});
-                if (userDoc.exists() && userDoc.data().userType === 'renter') {
-                    state.savedRoomIds = userDoc.data().savedRooms || [];
-                    updateSavedCount();
-                }
-            } else {
-                state.currentUser = null;
-                renderLoggedOutHeader();
-            }
-            bindHeaderEvents(); // Bind events *after* header is rendered
-            await fetchRooms(true);
-        });
-
-
-        ui.searchBtn.addEventListener('click', applyFilters);
-        ui.searchInput.addEventListener('input', applyFilters);
-        ui.priceFilter.addEventListener('change', applyFilters);
-        ui.typeFilter.addEventListener('change', applyFilters);
-        
-        ui.listingsGrid.addEventListener('click', (e) => {
-            const saveBtn = e.target.closest('.save-btn');
-            const contactBtn = e.target.closest('.contact-btn');
+        // These events are only for guests
+        function bindFilterEvents() {
+            ui.searchBtn.addEventListener('click', applyFilters);
+            ui.searchInput.addEventListener('input', applyFilters);
+            ui.priceFilter.addEventListener('change', applyFilters);
+            ui.typeFilter.addEventListener('change', applyFilters);
             
-            if (saveBtn) {
-                toggleSaveProperty(saveBtn.dataset.id);
-            }
-            if (contactBtn) {
-                 if (!state.currentUser) {
+            ui.listingsGrid.addEventListener('click', (e) => {
+                const saveBtn = e.target.closest('.save-btn');
+                const contactBtn = e.target.closest('.contact-btn');
+                
+                if (saveBtn || contactBtn) {
+                    // Guests can't save or contact, show login prompt
                     showLoginPrompt();
-                    return;
                 }
-                window.location.href = `mailto:${contactBtn.dataset.email}`;
-            }
-        });
+            });
 
-        ui.savedToggleBtn.addEventListener('click', () => {
-             if (!state.currentUser) {
-                showLoginPrompt();
-                return;
-            }
-            state.showingSaved = !state.showingSaved;
-            ui.savedToggleBtn.classList.toggle('bg-indigo-100', state.showingSaved);
-            ui.savedToggleBtn.classList.toggle('text-indigo-600', state.showingSaved);
-            applyFilters();
-        });
+            ui.savedToggleBtn.addEventListener('click', () => {
+                 showLoginPrompt();
+            });
 
-        ui.loadMoreBtn.addEventListener('click', () => fetchRooms(false));
+            ui.loadMoreBtn.addEventListener('click', () => fetchRooms(false));
+        }
         
     </script>
 </body>
