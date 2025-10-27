@@ -23,7 +23,6 @@
         }
         .search-card { box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.2); }
         
-        /* Using @apply in a style tag is not standard, replacing with plain CSS */
         .btn-primary {
             padding-left: 1.5rem;
             padding-right: 1.5rem;
@@ -60,6 +59,10 @@
             color: white;
             border-color: #4f46e5;
         }
+        
+        /* New utility class to hide scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -151,6 +154,53 @@
                 <button id="loadMoreBtn" class="btn-primary">Load More Rooms</button>
             </div>
         </section>
+
+        <!-- NEW: Popular Areas Section -->
+        <section class="mt-20 py-12">
+            <h2 class="text-3xl font-bold text-center mb-8">Popular Areas in Pune</h2>
+            <div class="flex gap-6 overflow-x-auto pb-4 no-scrollbar">
+                <!-- Card 1 -->
+                <div class="flex-shrink-0 w-72 bg-white rounded-lg shadow-md overflow-hidden card-hover">
+                    <img src="https://placehold.co/300x200/6366F1/FFFFFF?text=Koregaon+Park" class="w-full h-40 object-cover">
+                    <div class="p-4">
+                        <h3 class="font-semibold text-lg">Koregaon Park</h3>
+                        <p class="text-sm text-gray-500">245 properties</p>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div class="flex-shrink-0 w-72 bg-white rounded-lg shadow-md overflow-hidden card-hover">
+                    <img src="https://placehold.co/300x200/EC4899/FFFFFF?text=Hinjewadi" class="w-full h-40 object-cover">
+                    <div class="p-4">
+                        <h3 class="font-semibold text-lg">Hinjewadi</h3>
+                        <p class="text-sm text-gray-500">389 properties</p>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div class="flex-shrink-0 w-72 bg-white rounded-lg shadow-md overflow-hidden card-hover">
+                    <img src="https://placehold.co/300x200/F59E0B/FFFFFF?text=Viman+Nagar" class="w-full h-40 object-cover">
+                    <div class="p-4">
+                        <h3 class="font-semibold text-lg">Viman Nagar</h3>
+                        <p class="text-sm text-gray-500">198 properties</p>
+                    </div>
+                </div>
+                <!-- Card 4 -->
+                <div class="flex-shrink-0 w-72 bg-white rounded-lg shadow-md overflow-hidden card-hover">
+                    <img src="https://placehold.co/300x200/10B981/FFFFFF?text=Baner" class="w-full h-40 object-cover">
+                    <div class="p-4">
+                        <h3 class="font-semibold text-lg">Baner</h3>
+                        <p class="text-sm text-gray-500">267 properties</p>
+                    </div>
+                </div>
+                 <!-- Card 5 -->
+                <div class="flex-shrink-0 w-72 bg-white rounded-lg shadow-md overflow-hidden card-hover">
+                    <img src="https://placehold.co/300x200/EF4444/FFFFFF?text=Wakad" class="w-full h-40 object-cover">
+                    <div class="p-4">
+                        <h3 class="font-semibold text-lg">Wakad</h3>
+                        <p class="text-sm text-gray-500">134 properties</p>
+                    </div>
+                </div>
+            </div>
+        </section>
         
         <!-- CTA Footer -->
         <section class="mt-24 mb-12 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-12 text-center text-white">
@@ -167,7 +217,7 @@
         </section>
     </main>
     
-    <!-- NEW FOOTER SECTION -->
+    <!-- Footer -->
     <footer class="bg-gray-900 text-white">
         <div class="container mx-auto px-4 lg:px-8 py-16">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
@@ -224,7 +274,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, getDocs, query, where, limit, startAfter, updateDoc, arrayRemove, arrayUnion } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, query, where, updateDoc, arrayUnion, arrayRemove, limit, startAfter } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCyQlPonxZFcMJ2DG7Gh3TpizWbpKhN9nI",
@@ -295,6 +345,7 @@
                     </div>
                 </div>
             `;
+            // Re-bind events for new elements
             document.getElementById('userMenuBtn').addEventListener('click', () => {
                 document.getElementById('userMenu').classList.toggle('hidden');
             });
@@ -479,14 +530,43 @@
         }
         
         // --- EVENT LISTENERS ---
-        ui.logoutBtn?.addEventListener('click', () => signOut(auth));
-        ui.userMenuBtn?.addEventListener('click', () => ui.userMenu.classList.toggle('hidden'));
-        
-        document.addEventListener('click', (e) => {
-            if (ui.userMenu && !ui.userMenu.contains(e.target) && !ui.userMenuBtn.contains(e.target)) {
-                ui.userMenu.classList.add('hidden');
+        // Need to bind these after header is rendered
+        function bindHeaderEvents() {
+            const logoutBtn = document.getElementById('logoutBtn');
+            const userMenuBtn = document.getElementById('userMenuBtn');
+            const userMenu = document.getElementById('userMenu');
+
+            if(logoutBtn) {
+                logoutBtn.addEventListener('click', () => signOut(auth));
             }
+            if(userMenuBtn) {
+                userMenuBtn.addEventListener('click', () => userMenu.classList.toggle('hidden'));
+            }
+            document.addEventListener('click', (e) => {
+                if (userMenu && userMenuBtn && !userMenu.contains(e.target) && !userMenuBtn.contains(e.target)) {
+                    userMenu.classList.add('hidden');
+                }
+            });
+        }
+        
+        // Update auth change to call bindHeaderEvents
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                state.currentUser = user;
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                renderLoggedInHeader(userDoc.exists() ? userDoc.data() : {});
+                if (userDoc.exists() && userDoc.data().userType === 'renter') {
+                    state.savedRoomIds = userDoc.data().savedRooms || [];
+                    updateSavedCount();
+                }
+            } else {
+                state.currentUser = null;
+                renderLoggedOutHeader();
+            }
+            bindHeaderEvents(); // Bind events *after* header is rendered
+            await fetchRooms(true);
         });
+
 
         ui.searchBtn.addEventListener('click', applyFilters);
         ui.searchInput.addEventListener('input', applyFilters);
