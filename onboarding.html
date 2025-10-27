@@ -93,7 +93,7 @@
         const onboardingData = {
             renter: [
                 { id: 'roomSize', question: 'What room size are you looking for?', type: 'options', options: ['1 RK', '1 BHK', '2 BHK', '3 BHK', '4+ BHK'] },
-                { id: 'priceRange', question: 'What is your monthly price range?', type: 'range', fields: [{ label: 'Min Price', placeholder: 'e.g., 5000' }, { label: 'Max Price', placeholder: 'e.g., 15000' }] },
+                { id: 'priceRange', question: 'What is your monthly price range?', type: 'range', fields: [{ id: 'min', label: 'Min Price', placeholder: 'e.g., 5000' }, { id: 'max', label: 'Max Price', placeholder: 'e.g., 15000' }] },
                 { id: 'locality', question: 'Which locality or area do you prefer?', type: 'text', placeholder: 'e.g., Koramangala, Bengaluru' },
                 { id: 'nearby', question: 'What facilities do you want nearby?', type: 'multiselect', options: ['Park', 'Temple', 'Market', 'Gym', 'Hospital', 'Metro'] },
                 { id: 'sharing', question: 'How many partners will be sharing the space?', type: 'options', options: ['None', '1', '2', '3+'] },
@@ -105,7 +105,7 @@
                 { id: 'renterType', question: 'What type of renter do you prefer?', type: 'multiselect', options: ['Students', 'Working Professionals', 'Family'] },
                 { id: 'maritalStatus', question: 'What marital status do you prefer for renters?', type: 'options', options: ['Married', 'Unmarried', 'Any'] },
                 { id: 'memberCount', question: 'How many members are allowed?', type: 'number', placeholder: 'e.g., 3' },
-                { id: 'ageRange', question: 'What is the preferred age range for renters?', type: 'range', fields: [{ label: 'Min Age', placeholder: 'e.g., 21' }, { label: 'Max Age', placeholder: 'e.g., 45' }] },
+                { id: 'ageRange', question: 'What is the preferred age range for renters?', type: 'range', fields: [{ id: 'min', label: 'Min Age', placeholder: 'e.g., 21' }, { id: 'max', label: 'Max Age', placeholder: 'e.g., 45' }] },
                 { id: 'bills', question: 'Who will pay for electricity and water bills?', type: 'options', options: ['Renter Pays', 'Owner Pays', 'Included in rent'] },
                 { id: 'parking', question: 'Is parking available for the renter?', type: 'options', options: ['Yes, Car & Bike', 'Yes, Bike only', 'No'] },
             ]
@@ -175,8 +175,10 @@
                 DOMElements.contentContainer.innerHTML = '';
                 if (AppState.currentRole === null) {
                     this.renderRoleSelection();
-                } else {
+                } else if (AppState.currentStep < onboardingData[AppState.currentRole].length) {
                     this.renderQuestion();
+                } else {
+                    this.renderCompletionSummary(); // Show summary before finish
                 }
                 this.updateNavigation();
             },
@@ -204,6 +206,8 @@
                             </div>
                         </div>
                     </div>`;
+                
+                // FIXED: Add event listeners after rendering
                 document.getElementById('select-renter').addEventListener('click', () => this.selectRole('renter'));
                 document.getElementById('select-owner').addEventListener('click', () => this.selectRole('owner'));
             },
@@ -223,7 +227,7 @@
                             stepData.options.map(option => `<div class="option-card p-4 border rounded-lg cursor-pointer text-center font-medium" data-id="${stepData.id}" data-value="${option}">${option}</div>`).join('') + `</div>`;
                         break;
                     case 'multiselect':
-                         inputHTML = `<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">` +
+                        inputHTML = `<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">` +
                             stepData.options.map(option => `<div class="option-card p-4 border rounded-lg cursor-pointer text-center font-medium" data-id="${stepData.id}" data-value="${option}">${option}</div>`).join('') + `</div>`;
                         break;
                     case 'range':
@@ -231,15 +235,15 @@
                             stepData.fields.map(field => `
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">${field.label}</label>
-                                    <input type="number" id="${stepData.id}-${field.label.split(' ')[0].toLowerCase()}" placeholder="${field.placeholder}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                    <input type="number" id="${stepData.id}-${field.id}" placeholder="${field.placeholder}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
                                 </div>
                             `).join('') + `</div>`;
                         break;
                     default:
-                         inputHTML = `<div class="mt-4">
+                        inputHTML = `<div class="mt-4">
                             <input type="${stepData.type}" id="${stepData.id}" placeholder="${stepData.placeholder}" class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
-                         </div>`;
-                         break;
+                        </div>`;
+                        break;
                 }
 
                 DOMElements.contentContainer.innerHTML = `
@@ -260,10 +264,19 @@
             renderCompletionSummary() {
                 DOMElements.progressContainer.classList.add('hidden');
                 DOMElements.navContainer.classList.add('hidden');
-                const summary = Object.entries(AppState.formData).map(([key, value]) => `
-                    <li class="truncate"><strong class="font-semibold">${key.charAt(0).toUpperCase() + key.slice(1)}:</strong> 
-                        ${Array.isArray(value) ? value.join(', ') : (typeof value === 'object' ? `${value.min || ''} - ${value.max || ''}`: value)}
-                    </li>`).join('');
+                
+                const summary = Object.entries(AppState.formData).map(([key, value]) => {
+                    let displayValue;
+                    if (Array.isArray(value)) {
+                        displayValue = value.join(', ');
+                    } else if (typeof value === 'object' && value !== null) {
+                        displayValue = `${value.min || 'N/A'} - ${value.max || 'N/A'}`;
+                    } else {
+                        displayValue = value;
+                    }
+                    const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                    return `<li class="truncate"><strong class="font-semibold">${formattedKey}:</strong> ${displayValue}</li>`;
+                }).join('');
 
                 DOMElements.contentContainer.innerHTML = `
                     <div class="text-center fade-in">
@@ -276,14 +289,12 @@
                         </div>
                         <button id="finish-btn" class="mt-8 w-full bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-700">Go to Dashboard</button>
                     </div>`;
+                
                 document.getElementById('finish-btn').addEventListener('click', this.saveOnboardingData.bind(this));
             },
 
             // --- Event Handlers & Logic ---
 
-            /**
-             * Handles clicks on the 'Next' or 'Finish' button.
-             */
             handleNextClick() {
                 this.saveFormState();
                 const totalSteps = onboardingData[AppState.currentRole].length;
@@ -291,16 +302,12 @@
                     AppState.currentStep++;
                     this.renderStep();
                 } else {
-                    // This is the last step, show summary before saving.
                     this.renderCompletionSummary();
                 }
             },
 
-            /**
-             * Handles clicks on the 'Back' button.
-             */
             handleBackClick() {
-                this.saveFormState();
+                this.saveFormState(); // Save state even when going back
                 if (AppState.currentStep > 0) {
                     AppState.currentStep--;
                     this.renderStep();
@@ -330,11 +337,12 @@
                     await updateDoc(userRef, {
                         onboardingComplete: true,
                         userType: AppState.currentRole,
-                        preferences: { ...AppState.formData }
-                    }, { merge: true });
+                        preferences: { ...AppState.formData } // Save as 'preferences'
+                    }, { merge: true }); // Use merge:true to not overwrite existing user data
 
-                    alert("Onboarding complete! Redirecting...");
+                    // alert("Onboarding complete! Redirecting...");
                     window.location.href = AppState.currentRole === "owner" ? 'owner-dashboard.html' : 'renter-dashboard.html';
+                
                 } catch (error) {
                     console.error("Error saving data: ", error);
                     alert("Failed to save your preferences. Please try again.");
@@ -345,6 +353,7 @@
             
             // --- Form State Management ---
             
+            // FIXED: Add event listeners to dynamically created elements
             setupQuestionListeners() {
                  document.querySelectorAll('.option-card').forEach(card => {
                     card.addEventListener('click', (e) => {
@@ -380,11 +389,12 @@
                 this.validateForm();
             },
             
+            // FIXED: Correctly save data from different input types
             saveFormState() {
-                 if (!AppState.currentRole || AppState.currentStep < 0) return;
+                 if (!AppState.currentRole || AppState.currentStep < 0 || AppState.currentStep >= onboardingData[AppState.currentRole].length) return;
                  const stepData = onboardingData[AppState.currentRole][AppState.currentStep];
-                 
-                 switch(stepData.type) {
+                
+                switch(stepData.type) {
                     case 'text': case 'number':
                         const inputEl = document.getElementById(stepData.id);
                         if(inputEl) AppState.formData[stepData.id] = inputEl.value;
@@ -396,9 +406,10 @@
                             AppState.formData[stepData.id] = { min: minInput.value, max: maxInput.value };
                         }
                         break;
-                 }
+                }
             },
 
+            // FIXED: Correctly restore data for all input types
             restoreFormState() {
                 if (!AppState.currentRole || AppState.currentStep < 0) return;
                 const stepData = onboardingData[AppState.currentRole][AppState.currentStep];
@@ -407,7 +418,7 @@
 
                 switch(stepData.type) {
                     case 'options':
-                         document.querySelectorAll(`[data-id="${stepData.id}"]`).forEach(el => {
+                        document.querySelectorAll(`[data-id="${stepData.id}"]`).forEach(el => {
                             if (el.dataset.value === value) el.classList.add('selected');
                         });
                         break;
@@ -431,9 +442,10 @@
                 }
             },
 
+            // FIXED: Correctly validate all input types
             validateForm() {
                 if (!AppState.currentRole || AppState.currentStep < 0) {
-                     DOMElements.nextBtn.disabled = true; return;
+                    DOMElements.nextBtn.disabled = true; return;
                 }
                 const stepData = onboardingData[AppState.currentRole][AppState.currentStep];
                 let isValid = false;
